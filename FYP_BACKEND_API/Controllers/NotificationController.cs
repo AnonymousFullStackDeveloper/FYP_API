@@ -1,6 +1,8 @@
 ﻿using FYP_BACKEND_API.Controllers.DB;
 using FYP_BACKEND_API.Controllers.Model;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.Configuration;
 using System.Data;
 
 namespace FYP_BACKEND_API.Controllers
@@ -143,9 +145,9 @@ namespace FYP_BACKEND_API.Controllers
             }
 
             // Construct the select query
-            string query = "SELECT * FROM Notifications WHERE UserID = "+userId+" ORDER BY NotificationID DESC;";
+            string query = "SELECT * FROM Notifications WHERE UserID = " + userId + " ORDER BY NotificationID DESC;";
 
-            
+
             // Execute the query and retrieve data
             DataTable dataTable = databaseService.GetData(query);
 
@@ -170,6 +172,99 @@ namespace FYP_BACKEND_API.Controllers
 
             return Ok(notifications);
         }
+        [HttpGet("GetUserNotificationsByUserId/{userId}")]
+        public IActionResult GetAllNotificationsByUserId(int userId)
+        {
+            if (userId <= 0)
+                return BadRequest("Invalid user ID.");
+
+            string query = "SELECT * FROM Notifications WHERE UserID = @UserId ORDER BY NotificationID DESC;";
+
+            // Corrected SqlConnection syntax
+            using (SqlConnection connection = new SqlConnection("Server=DEVELOPER;Database=FYP_DB;User Id=sa;Password=123456;TrustServerCertificate=True;"))
+            {
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@UserId", userId);
+
+                    SqlDataAdapter adapter = new SqlDataAdapter(command);
+                    DataTable dataTable = new DataTable();
+
+                    connection.Open(); // IMPORTANT: Open connection before filling
+                    adapter.Fill(dataTable);
+
+                    if (dataTable.Rows.Count == 0)
+                        return NotFound("No notifications found for the given user ID.");
+
+                    List<NotificationEntity> notifications = new List<NotificationEntity>();
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        notifications.Add(new NotificationEntity
+                        {
+                            NotificationId = Convert.ToInt32(row["NotificationID"]),
+                            UserId = Convert.ToInt32(row["UserID"]),
+                            Type = Convert.ToString(row["Type"]),
+                            Status = Convert.ToString(row["Status"]),
+                            CreatedAt = Convert.ToDateTime(row["CreatedAt"])
+                        });
+                    }
+
+                    return Ok(notifications);
+                }
+            }
+        }
+
+
+
+
+        [HttpGet("GetAndMarkNotificationsAsRead/{userId}")]
+        public IActionResult GetAndMarkNotificationsAsRead(int userId)
+        {
+            if (userId <= 0)
+                return BadRequest("Invalid user ID.");
+
+            string selectQuery = "SELECT * FROM Notifications WHERE UserID = @UserId ORDER BY NotificationID DESC;";
+            string updateQuery = "UPDATE Notifications SET Status = 'Read' WHERE UserID = @UserId AND Status != 'Read';";
+
+            using (SqlConnection connection = new SqlConnection("Server=DEVELOPER;Database=FYP_DB;User Id=sa;Password=123456;TrustServerCertificate=True;"))
+            {
+                using (SqlCommand selectCommand = new SqlCommand(selectQuery, connection))
+                using (SqlCommand updateCommand = new SqlCommand(updateQuery, connection))
+                {
+                    selectCommand.Parameters.AddWithValue("@UserId", userId);
+                    updateCommand.Parameters.AddWithValue("@UserId", userId);
+
+                    SqlDataAdapter adapter = new SqlDataAdapter(selectCommand);
+                    DataTable dataTable = new DataTable();
+
+                    connection.Open();
+                    adapter.Fill(dataTable);
+
+                    if (dataTable.Rows.Count == 0)
+                        return NotFound("No notifications found for the given user ID.");
+
+                    // Update all statuses to "Read"
+                    updateCommand.ExecuteNonQuery();
+
+                    List<NotificationEntity> notifications = new List<NotificationEntity>();
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        notifications.Add(new NotificationEntity
+                        {
+                            NotificationId = Convert.ToInt32(row["NotificationID"]),
+                            UserId = Convert.ToInt32(row["UserID"]),
+                            Type = Convert.ToString(row["Type"]),
+                            Status = "Read", // Mark as read since we've updated it
+                            CreatedAt = Convert.ToDateTime(row["CreatedAt"])
+                        });
+                    }
+
+                    return Ok(notifications);
+                }
+            }
+        }
+
+
 
 
     }

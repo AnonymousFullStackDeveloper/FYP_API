@@ -10,6 +10,11 @@ namespace FYP_BACKEND_API.Controllers.DB
         private readonly static SqlConnection _connection = new("Server=DEVELOPER;Database=FYP_DB;User Id=sa;Password=123456;TrustServerCertificate=True;");
 
 
+        public String getCon()
+        {
+            return "Server=DEVELOPER;Database=FYP_DB;User Id=sa;Password=123456;TrustServerCertificate=True;";
+        }
+
         //public DatabaseService()
         //{
         //    _connection = new SqlConnection(_connectionString);
