@@ -419,9 +419,6 @@ namespace FYP_BACKEND_API.Controllers
                 return BadRequest("Invalid request payload.");
             }
 
-
-
-
             // Construct the update query
             string query = "UPDATE UserFriends SET Friendship_Status = @Status WHERE Friend_Id = @FriendId and User_Id= @UserId;";
 
@@ -443,6 +440,46 @@ namespace FYP_BACKEND_API.Controllers
                 databaseService.CloseConnection();
 
                 return Ok("Friendship status updated successfully.");
+            }
+            else
+            {
+                return NotFound($"No record found ");
+            }
+        }
+
+
+
+
+        [HttpPut("UpdateUserFriendStatus")]
+        public IActionResult UpdateUserFriendPermission([FromBody] UserFriends request)
+        {
+            if (request == null || string.IsNullOrEmpty(request.Status))
+            {
+
+                return BadRequest("Invalid request payload.");
+            }
+
+            // Construct the update query
+            string query = "UPDATE UserFriends SET Friendship_Status = @status WHERE Friend_Id = @FriendId and User_Id= @UserId;";
+
+            // Prepare parameters
+            var parameters = new Dictionary<string, object>
+                {
+                    { "@status", request.Permission },
+                    { "@FriendId", request.Friend_Id },
+                    { "@UserId", request.User_Id },
+
+                };
+
+            // Execute the query
+            string rowsAffected = databaseService.AddData(query, parameters);
+            databaseService.CloseConnection();
+
+            if (int.Parse(rowsAffected) > 0)
+            {
+                databaseService.CloseConnection();
+
+                return Ok("User Friend Permission updated successfully.");
             }
             else
             {

@@ -103,6 +103,25 @@ namespace FYP_BACKEND_API.Controllers
             }
         }
 
+        [HttpGet("GetUserUnreadCount/{userId}")]
+        public IActionResult GetUnreadNotificationCount(int userId)
+        {
+            string query = "SELECT COUNT(*) FROM Notifications WHERE UserID = @UserId AND Status != 'Read'";
+
+            using (SqlConnection connection = new SqlConnection("Server=DEVELOPER;Database=FYP_DB;User Id=sa;Password=123456;TrustServerCertificate=True;"))
+            {
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@UserId", userId);
+                    connection.Open();
+                    int unreadCount = (int)command.ExecuteScalar();
+                    connection.Close();
+                    return Ok(unreadCount.ToString());
+                }
+            }
+        }
+
+
 
         [HttpDelete("DeleteNotification/{id}")]
         public IActionResult DeleteNotification(int id)
