@@ -62,10 +62,10 @@ namespace FYP_BACKEND_API.Controllers
             return Ok(list);
         }
 
-        [HttpGet("GetByGroupId/{id}")]
-        public IActionResult GetByGroupId(int id)
+        [HttpGet("GetByGroupId")]
+        public IActionResult GetByGroupId(int gId,int uid)
         {
-            DataTable dataTable = databaseService.GetData("SELECT * FROM Users WHERE Id IN (SELECT User_Id FROM Member WHERE Group_Id = "+id+");");
+            DataTable dataTable = databaseService.GetData("SELECT DISTINCT U.*, F.Permission FROM Users U INNER JOIN Member M ON U.Id = M.User_Id INNER JOIN UserFriends F ON F.Friend_Id = U.Id WHERE M.Group_Id = "+gId+" AND F.User_Id = "+uid+" ;");
 
             List<UserEntity> list = [];
             foreach (DataRow row in dataTable.Rows)
@@ -76,6 +76,7 @@ namespace FYP_BACKEND_API.Controllers
                     Name = Convert.ToString(row["Name"]),
                     Email = Convert.ToString(row["Email"]),
                     Password = Convert.ToString(row["Password"]),
+                    per= Convert.ToString(row["Permission"]),
                     CreatedAt = Convert.ToString(row["created_at"])
                 };
                 list.Add(userModel);

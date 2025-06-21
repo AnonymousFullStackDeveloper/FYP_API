@@ -9,6 +9,8 @@
         public string CreatedAt { get; set; }
 
 
+        public string? per { get; set; }
+
         public UserDetails UserDetails { get; set; }
 
 

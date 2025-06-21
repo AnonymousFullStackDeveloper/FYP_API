@@ -66,7 +66,7 @@ namespace FYP_BACKEND_API.Controllers
         [HttpGet("GetUserFriendsLiveLocation/{id}")]
         public IActionResult GetUserFriendsLiveLocation(int id)
         {
-            DataTable dataTable = databaseService.GetData("SELECT UL.LocationID, UL.UserID, UL.Latitude, UL.Longitude, UL.Timestamp, U.Name FROM UserLiveLocation UL  JOIN UserFriends F ON UL.UserID = F.Friend_Id  JOIN Users U ON UL.UserID = U.Id WHERE F.User_Id = " + id+" and F.Friendship_Status='Accepted';");
+            DataTable dataTable = databaseService.GetData("SELECT UL.LocationID, UL.UserID, UL.Latitude, UL.Longitude, UL.Timestamp, U.Name FROM UserLiveLocation UL  JOIN UserFriends F ON UL.UserID = F.Friend_Id  JOIN Users U ON UL.UserID = U.Id WHERE F.User_Id = " + id+ " and F.Friendship_Status='Accepted' and F.Permission='Allow';");
 
             List<UserLiveLocationEntity> userFriendLiveLocationList = [];
             foreach (DataRow row in dataTable.Rows)
@@ -95,7 +95,7 @@ namespace FYP_BACKEND_API.Controllers
         [HttpGet("GetGroupFriendsLiveLocation/{id}")]
         public IActionResult GetLiveLocationUser(int id)
         {
-            DataTable dataTable = databaseService.GetData("SELECT ull.UserId, ull.Latitude, ull.Longitude, ull.Timestamp, u.Name FROM Member m INNER JOIN Users u ON m.User_Id = u.Id INNER JOIN UserLiveLocation ull ON ull.UserId = m.User_Id WHERE m.Group_Id = "+id+";");
+            DataTable dataTable = databaseService.GetData("SELECT ull.UserId, ull.Latitude, ull.Longitude, ull.Timestamp, u.Name FROM Member m INNER JOIN Users u ON m.User_Id = u.Id INNER JOIN UserFriends uf ON uf.Friend_Id = m.User_Id INNER JOIN UserLiveLocation ull ON ull.UserId = m.User_Id WHERE m.Group_Id = "+id+" and uf.Permission='Allow';");
 
             List<UserLiveLocationEntity> userFriendLiveLocationList = [];
             foreach (DataRow row in dataTable.Rows)
@@ -488,8 +488,8 @@ namespace FYP_BACKEND_API.Controllers
         }
 
 
-        [HttpPut("UpdateUserFriendPermission")]
-        public IActionResult UpdateUserFriendPermission([FromBody] UserFriends request)
+        [HttpPut("UpdateUserFriendPermis")]
+        public IActionResult UpdateUserFriendPermis([FromBody] UserFriends request)
         {
             if (request == null || string.IsNullOrEmpty(request.Status))
             {
